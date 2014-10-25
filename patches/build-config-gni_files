@@ -1,0 +1,184 @@
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 890d33e..3051971 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -166,6 +166,16 @@ if (os == "win") {
+   is_nacl = false
+   is_posix = true
+   is_win = false
++} else if (os == "solaris") {
++  is_android = false
++  is_chromeos = false
++  is_ios = false
++  is_linux = false
++  is_mac = false
++  is_nacl = false
++  is_posix = true
++  is_win = false
++  is_solaris = true
+ }
+ 
+ is_desktop_linux = is_linux && !is_chromeos
+@@ -270,6 +280,15 @@ if (!is_linux) {
+     "*\blinux/*",
+   ]
+ }
++if (!is_solaris) {
++  sources_assignment_filter += [
++    "*_solaris.h",
++    "*_solaris.cc",
++    "*_solaris_unittest.h",
++    "*_solaris_unittest.cc",
++    "*\bsolaris/*",
++  ]
++}
+ if (!is_android) {
+   sources_assignment_filter += [
+     "*_android.h",
+@@ -530,6 +549,9 @@ if (is_win) {
+ } else if (is_ios) {
+   host_toolchain = "//build/toolchain/mac:host_clang"
+   set_default_toolchain("//build/toolchain/mac:clang")
++} else if (is_solaris) {
++  host_toolchain = "//build/toolchain/solaris:$build_cpu_arch"
++  set_default_toolchain("//build/toolchain/solaris:$cpu_arch")
+ }
+ 
+ # ==============================================================================
+diff --git a/build/config/crypto.gni b/build/config/crypto.gni
+index 20004c3..6790269 100644
+--- a/build/config/crypto.gni
++++ b/build/config/crypto.gni
+@@ -10,7 +10,7 @@
+ declare_args() {
+   # Use OpenSSL instead of NSS. This is used for Android, Mac, and NaCl untrusted
+   # code, and is experimental in other cases (see http://crbug.com/62803).
+-  use_openssl = is_android || is_mac || is_nacl
++  use_openssl = is_android || is_mac || is_nacl || is_solaris
+ }
+ 
+ # True when we're using OpenSSL for certificate verification and storage. We
+diff --git a/build/config/features.gni b/build/config/features.gni
+index 4ed933f..951c6fc 100644
+--- a/build/config/features.gni
++++ b/build/config/features.gni
+@@ -19,7 +19,7 @@ declare_args() {
+   # Multicast DNS.
+   enable_mdns = is_win || is_linux
+ 
+-  enable_plugins = !is_android && !is_ios
++  enable_plugins = !is_android && !is_ios && !is_solaris
+ 
+   # Enables Native Client support.
+   # TODO(GYP) enable this when nacl works in GN.
+@@ -54,7 +54,7 @@ if (is_android || is_ios) {
+ use_udev = is_linux
+ 
+ # Enable the spell checker.
+-enable_spellcheck = !is_android
++enable_spellcheck = !is_android && !is_solaris
+ 
+ enable_pepper_cdms = enable_plugins && (is_linux || is_mac || is_win)
+ 
+@@ -66,6 +66,8 @@ enable_browser_cdms = is_android
+ # a PDF or EMF) and disables print preview, cloud print, UI, etc.
+ if (is_android) {
+   printing_mode = 2
++} else if(is_solaris) {
++  printing_mode = 0
+ } else {
+   printing_mode = 1
+ }
+@@ -79,16 +81,16 @@ use_seccomp_bpf = (is_linux || is_android) &&
+ 
+ # Enable notifications everywhere except Android/iOS.
+ # Android is http://crbug.com/115320
+-enable_notifications = !is_android && !is_ios
++enable_notifications = !is_android && !is_ios && !is_solaris
+ 
+ # TODO(brettw) this should be moved to net and only dependents get this define.
+ disable_ftp_support = is_ios
+ 
+-enable_web_speech = (!is_android && !is_ios)
++enable_web_speech = (!is_android && !is_ios && !is_solaris)
+ 
+ use_dbus = is_linux
+ 
+-enable_extensions = (!is_android && !is_ios)
++enable_extensions = (!is_android && !is_ios && !is_solaris)
+ 
+ # Variable safe_browsing is used to control the build time configuration for
+ # safe browsing feature. Safe browsing can be compiled in 3 different levels: 0
+@@ -97,7 +99,7 @@ enable_extensions = (!is_android && !is_ios)
+ # a third party phishing/malware detection to existing safe browsing logic.
+ if (is_android) {
+   safe_browsing_mode = 2
+-} else if (is_ios) {
++} else if (is_ios || is_solaris) {
+   safe_browsing_mode = 0
+ } else {
+   safe_browsing_mode = 1
+@@ -117,13 +119,13 @@ enable_configuration_policy = true
+ cld2_data_source = "static"
+ 
+ # Enables support for background apps.
+-enable_background = !is_ios && !is_android
++enable_background = !is_ios && !is_android  && !is_solaris
+ 
+-enable_task_manager = !is_ios && !is_android
++enable_task_manager = !is_ios && !is_android && !is_solaris
+ 
+ use_cups = is_desktop_linux || is_mac
+ 
+-enable_themes = !is_android && !is_ios
++enable_themes = !is_android && !is_ios && !is_solaris
+ 
+ # TODO(scottmg) remove this when we've fixed printing.
+ win_pdf_metafile_for_printing = true
+@@ -132,7 +134,7 @@ enable_captive_portal_detection = !is_android && !is_ios
+ 
+ # Enables use of the session service, which is enabled by default.
+ # Android stores them separately on the Java side.
+-enable_session_service = !is_android && !is_ios
++enable_session_service = !is_android && !is_ios && !is_solaris
+ 
+ # Whether we are using the rlz library or not.  Platforms like Android send
+ # rlz codes for searches but do not use the library.
+@@ -140,10 +142,10 @@ enable_rlz = is_chrome_branded && (is_win || is_mac || is_ios || is_chromeos)
+ 
+ enable_plugin_installation = is_win || is_mac
+ 
+-enable_app_list = !is_ios && !is_android
++enable_app_list = !is_ios && !is_android && !is_solaris
+ enable_settings_app = enable_app_list && !is_chromeos
+ 
+-enable_managed_users = !is_ios
++enable_managed_users = !is_ios && !is_solaris
+ 
+ enable_service_discovery = enable_mdns || is_mac
+ 
+@@ -154,9 +156,9 @@ enable_wifi_bootstrapping = is_win || is_mac
+ # Image loader extension is enabled on ChromeOS only.
+ enable_image_loader_extension = is_chromeos
+ 
+-enable_remoting = !is_ios && !is_android
++enable_remoting = !is_ios && !is_android && !is_solaris
+ 
+-enable_google_now = !is_ios && !is_android
++enable_google_now = !is_ios && !is_android && !is_solaris
+ 
+ enable_one_click_signin = is_win || is_mac || (is_linux && !is_chromeos)
+ 
+diff --git a/build/config/ui.gni b/build/config/ui.gni
+index f23cd00..8012cd6 100644
+--- a/build/config/ui.gni
++++ b/build/config/ui.gni
+@@ -54,7 +54,7 @@ ui_compositor_image_transport = use_aura && is_linux
+ use_default_render_theme = use_aura || is_linux
+ 
+ # Indicates if the UI toolkit depends on X11.
+-use_x11 = is_linux && !use_ozone
++use_x11 = (is_linux || is_solaris) && !use_ozone
+ 
+ use_ozone_evdev = use_ozone
+ 
