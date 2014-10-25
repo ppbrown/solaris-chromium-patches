@@ -1,0 +1,30 @@
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 8704489..3051971 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -280,6 +280,15 @@ if (!is_linux) {
+     "*\blinux/*",
+   ]
+ }
++if (!is_solaris) {
++  sources_assignment_filter += [
++    "*_solaris.h",
++    "*_solaris.cc",
++    "*_solaris_unittest.h",
++    "*_solaris_unittest.cc",
++    "*\bsolaris/*",
++  ]
++}
+ if (!is_android) {
+   sources_assignment_filter += [
+     "*_android.h",
+@@ -540,6 +549,9 @@ if (is_win) {
+ } else if (is_ios) {
+   host_toolchain = "//build/toolchain/mac:host_clang"
+   set_default_toolchain("//build/toolchain/mac:clang")
++} else if (is_solaris) {
++  host_toolchain = "//build/toolchain/solaris:$build_cpu_arch"
++  set_default_toolchain("//build/toolchain/solaris:$cpu_arch")
+ }
+ 
+ # ==============================================================================

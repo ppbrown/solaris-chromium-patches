@@ -1,0 +1,33 @@
+diff --git a/build/toolchain/solaris/BUILD.gn b/build/toolchain/solaris/BUILD.gn
+new file mode 100644
+index 0000000..3e56dc7
+--- /dev/null
++++ b/build/toolchain/solaris/BUILD.gn
+@@ -0,0 +1,27 @@
++# Copyright 2013 The Chromium Authors. All rights reserved.  Use of
++# this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++
++import("//build/toolchain/gcc_toolchain.gni")
++
++gcc_toolchain("x64") {
++  cc = "gcc"
++  cxx = "g++"
++  ar = "ar"
++  ld = cxx
++
++  toolchain_cpu_arch = "x64"
++  toolchain_os = "solaris"
++  is_clang = false
++}
++
++gcc_toolchain("x86") {
++  cc = "gcc"
++  cxx = "g++"
++  ar = "ar"
++  ld = cxx
++
++  toolchain_cpu_arch = "x86"
++  toolchain_os = "solaris"
++  is_clang = false
++}
