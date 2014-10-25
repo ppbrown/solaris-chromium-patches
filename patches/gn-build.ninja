@@ -1,33 +1,279 @@
 diff --git a/tools/gn/build.ninja b/tools/gn/build.ninja
-index 3f633de6..6cf3589 100644
---- a/tools/gn/build.ninja
+new file mode 100644
+index 0000000..fd0d8ce
+--- /dev/null
 +++ b/tools/gn/build.ninja
-@@ -804,6 +804,10 @@ build base/posix/file_descriptor_shuffle.o: cxx /export/home/src/chromium/src/ba
-    includes = -I/export/home/src/chromium/src
-    cflags = 
-    cflags_cc = 
+@@ -0,0 +1,273 @@
++# This file is HAND-HACKED by Phil Brown
++
++cc = gcc
++cxx = g++ -std=gnu++11
++ld = $cc
++
++# since gcc4.9 required, need to set rpath to g++ libs
++ldxx = $cxx -R/usr/local/lib
++ar = ar
++
++# these are the default cflags and includes. 
++# They can be overridden by individual
++# build sections, below
++
++## Cant use FILE_OFFSET_BITS=64, if we want to use procfs in
++##  process_handle_solaris.cc
++## But if we dont use 64, then file_posix.cc bombs with 
++##  failed assertion about off_t not being 64bit!
++## SO.. have to mix n match
++
++cflags = -D_FILE_OFFSET_BITS=64 -DNDEBUG -DDCHECK_ALWAYS_ON
++
++# Also, we technicaly only need the "DCHECK_ALWAYS_ON" for the threading dir.
++#  (see comments in thread_checker.h )
++# but for my convenience, just set it globally. for now.
++#
++
++
++includes = -I/export/home/src/chromium/src
++
++rule cc
++   command = $cc -MMD -MF $out.d $defines $includes $cflags $cflags_c -c $in -o $out
++   description = CC $out
++   depfile = $out.d
++   deps = gcc
++
++rule cxx
++   command = $cxx -MMD -MF $out.d $defines $includes $cflags $cflags_cc -c $in -o $out
++   description = CXX $out
++   depfile = $out.d
++   deps = gcc
++
++rule alink_thin
++   command = rm -f $out && $ar rcs $out $in
++   description = AR $out
++
++rule link
++   command = $ld $ldflags -o $out -Wl,--start-group $in $solibs -Wl,--end-group $libs
++   description = LINK $out
++build tools/gn/test_with_scope.o: cxx /export/home/src/chromium/src/tools/gn/test_with_scope.cc
++build tools/gn/input_file_manager.o: cxx /export/home/src/chromium/src/tools/gn/input_file_manager.cc
++build tools/gn/ninja_action_target_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_action_target_writer.cc
++build tools/gn/commands.o: cxx /export/home/src/chromium/src/tools/gn/commands.cc
++build tools/gn/group_target_generator.o: cxx /export/home/src/chromium/src/tools/gn/group_target_generator.cc
++build tools/gn/command_gen.o: cxx /export/home/src/chromium/src/tools/gn/command_gen.cc
++build tools/gn/gn_main.o: cxx /export/home/src/chromium/src/tools/gn/gn_main.cc
++build tools/gn/function_foreach.o: cxx /export/home/src/chromium/src/tools/gn/function_foreach.cc
++build tools/gn/command_format.o: cxx /export/home/src/chromium/src/tools/gn/command_format.cc
++build tools/gn/toolchain.o: cxx /export/home/src/chromium/src/tools/gn/toolchain.cc
++build tools/gn/input_conversion.o: cxx /export/home/src/chromium/src/tools/gn/input_conversion.cc
++build tools/gn/tokenizer.o: cxx /export/home/src/chromium/src/tools/gn/tokenizer.cc
++build tools/gn/command_refs.o: cxx /export/home/src/chromium/src/tools/gn/command_refs.cc
++build tools/gn/scheduler.o: cxx /export/home/src/chromium/src/tools/gn/scheduler.cc
++build tools/gn/label_pattern.o: cxx /export/home/src/chromium/src/tools/gn/label_pattern.cc
++build tools/gn/ninja_binary_target_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_binary_target_writer.cc
++build tools/gn/c_include_iterator.o: cxx /export/home/src/chromium/src/tools/gn/c_include_iterator.cc
++build tools/gn/scope.o: cxx /export/home/src/chromium/src/tools/gn/scope.cc
++build tools/gn/function_write_file.o: cxx /export/home/src/chromium/src/tools/gn/function_write_file.cc
++build tools/gn/command_desc.o: cxx /export/home/src/chromium/src/tools/gn/command_desc.cc
++build tools/gn/tool.o: cxx /export/home/src/chromium/src/tools/gn/tool.cc
++build tools/gn/label.o: cxx /export/home/src/chromium/src/tools/gn/label.cc
++build tools/gn/config_values_extractors.o: cxx /export/home/src/chromium/src/tools/gn/config_values_extractors.cc
++build tools/gn/parse_tree.o: cxx /export/home/src/chromium/src/tools/gn/parse_tree.cc
++build tools/gn/ninja_group_target_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_group_target_writer.cc
++build tools/gn/action_target_generator.o: cxx /export/home/src/chromium/src/tools/gn/action_target_generator.cc
++build tools/gn/substitution_list.o: cxx /export/home/src/chromium/src/tools/gn/substitution_list.cc
++build tools/gn/token.o: cxx /export/home/src/chromium/src/tools/gn/token.cc
++build tools/gn/ninja_build_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_build_writer.cc
++build tools/gn/scope_per_file_provider.o: cxx /export/home/src/chromium/src/tools/gn/scope_per_file_provider.cc
++build tools/gn/function_rebase_path.o: cxx /export/home/src/chromium/src/tools/gn/function_rebase_path.cc
++build tools/gn/ninja_copy_target_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_copy_target_writer.cc
++build tools/gn/target_generator.o: cxx /export/home/src/chromium/src/tools/gn/target_generator.cc
++build tools/gn/loader.o: cxx /export/home/src/chromium/src/tools/gn/loader.cc
++build tools/gn/command_ls.o: cxx /export/home/src/chromium/src/tools/gn/command_ls.cc
++build tools/gn/build_settings.o: cxx /export/home/src/chromium/src/tools/gn/build_settings.cc
++build tools/gn/binary_target_generator.o: cxx /export/home/src/chromium/src/tools/gn/binary_target_generator.cc
++build tools/gn/action_values.o: cxx /export/home/src/chromium/src/tools/gn/action_values.cc
++build tools/gn/function_get_path_info.o: cxx /export/home/src/chromium/src/tools/gn/function_get_path_info.cc
++build tools/gn/copy_target_generator.o: cxx /export/home/src/chromium/src/tools/gn/copy_target_generator.cc
++build tools/gn/string_utils.o: cxx /export/home/src/chromium/src/tools/gn/string_utils.cc
++build tools/gn/input_file.o: cxx /export/home/src/chromium/src/tools/gn/input_file.cc
++build tools/gn/function_exec_script.o: cxx /export/home/src/chromium/src/tools/gn/function_exec_script.cc
++build tools/gn/function_process_file_template.o: cxx /export/home/src/chromium/src/tools/gn/function_process_file_template.cc
++build tools/gn/command_args.o: cxx /export/home/src/chromium/src/tools/gn/command_args.cc
++build tools/gn/err.o: cxx /export/home/src/chromium/src/tools/gn/err.cc
++build tools/gn/variables.o: cxx /export/home/src/chromium/src/tools/gn/variables.cc
++build tools/gn/ninja_utils.o: cxx /export/home/src/chromium/src/tools/gn/ninja_utils.cc
++build tools/gn/escape.o: cxx /export/home/src/chromium/src/tools/gn/escape.cc
++build tools/gn/function_toolchain.o: cxx /export/home/src/chromium/src/tools/gn/function_toolchain.cc
++build tools/gn/value_extractors.o: cxx /export/home/src/chromium/src/tools/gn/value_extractors.cc
++build tools/gn/config_values.o: cxx /export/home/src/chromium/src/tools/gn/config_values.cc
++build tools/gn/trace.o: cxx /export/home/src/chromium/src/tools/gn/trace.cc
++build tools/gn/functions.o: cxx /export/home/src/chromium/src/tools/gn/functions.cc
++build tools/gn/builder_record.o: cxx /export/home/src/chromium/src/tools/gn/builder_record.cc
++build tools/gn/ninja_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_writer.cc
++build tools/gn/header_checker.o: cxx /export/home/src/chromium/src/tools/gn/header_checker.cc
++build tools/gn/pattern.o: cxx /export/home/src/chromium/src/tools/gn/pattern.cc
++build tools/gn/functions_target.o: cxx /export/home/src/chromium/src/tools/gn/functions_target.cc
++build tools/gn/standard_out.o: cxx /export/home/src/chromium/src/tools/gn/standard_out.cc
++build tools/gn/config_values_generator.o: cxx /export/home/src/chromium/src/tools/gn/config_values_generator.cc
++build tools/gn/ninja_toolchain_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_toolchain_writer.cc
++build tools/gn/function_get_label_info.o: cxx /export/home/src/chromium/src/tools/gn/function_get_label_info.cc
++build tools/gn/location.o: cxx /export/home/src/chromium/src/tools/gn/location.cc
++build tools/gn/template.o: cxx /export/home/src/chromium/src/tools/gn/template.cc
++build tools/gn/path_output.o: cxx /export/home/src/chromium/src/tools/gn/path_output.cc
++build tools/gn/source_file.o: cxx /export/home/src/chromium/src/tools/gn/source_file.cc
++build tools/gn/item.o: cxx /export/home/src/chromium/src/tools/gn/item.cc
++build tools/gn/args.o: cxx /export/home/src/chromium/src/tools/gn/args.cc
++build tools/gn/deps_iterator.o: cxx /export/home/src/chromium/src/tools/gn/deps_iterator.cc
++build tools/gn/command_help.o: cxx /export/home/src/chromium/src/tools/gn/command_help.cc
++build tools/gn/function_template.o: cxx /export/home/src/chromium/src/tools/gn/function_template.cc
++build tools/gn/source_dir.o: cxx /export/home/src/chromium/src/tools/gn/source_dir.cc
++build tools/gn/setup.o: cxx /export/home/src/chromium/src/tools/gn/setup.cc
++build tools/gn/substitution_type.o: cxx /export/home/src/chromium/src/tools/gn/substitution_type.cc
++build tools/gn/target.o: cxx /export/home/src/chromium/src/tools/gn/target.cc
++build tools/gn/source_file_type.o: cxx /export/home/src/chromium/src/tools/gn/source_file_type.cc
++build tools/gn/parser.o: cxx /export/home/src/chromium/src/tools/gn/parser.cc
++build tools/gn/exec_process.o: cxx /export/home/src/chromium/src/tools/gn/exec_process.cc
++build tools/gn/function_read_file.o: cxx /export/home/src/chromium/src/tools/gn/function_read_file.cc
++build tools/gn/config.o: cxx /export/home/src/chromium/src/tools/gn/config.cc
++build tools/gn/output_file.o: cxx /export/home/src/chromium/src/tools/gn/output_file.cc
++build tools/gn/function_set_defaults.o: cxx /export/home/src/chromium/src/tools/gn/function_set_defaults.cc
++build tools/gn/import_manager.o: cxx /export/home/src/chromium/src/tools/gn/import_manager.cc
++build tools/gn/function_get_target_outputs.o: cxx /export/home/src/chromium/src/tools/gn/function_get_target_outputs.cc
++build tools/gn/command_check.o: cxx /export/home/src/chromium/src/tools/gn/command_check.cc
++build tools/gn/builder.o: cxx /export/home/src/chromium/src/tools/gn/builder.cc
++build tools/gn/function_set_default_toolchain.o: cxx /export/home/src/chromium/src/tools/gn/function_set_default_toolchain.cc
++build tools/gn/visibility.o: cxx /export/home/src/chromium/src/tools/gn/visibility.cc
++build tools/gn/operators.o: cxx /export/home/src/chromium/src/tools/gn/operators.cc
++build tools/gn/ninja_target_writer.o: cxx /export/home/src/chromium/src/tools/gn/ninja_target_writer.cc
++build tools/gn/substitution_writer.o: cxx /export/home/src/chromium/src/tools/gn/substitution_writer.cc
++build tools/gn/filesystem_utils.o: cxx /export/home/src/chromium/src/tools/gn/filesystem_utils.cc
++build tools/gn/substitution_pattern.o: cxx /export/home/src/chromium/src/tools/gn/substitution_pattern.cc
++build tools/gn/value.o: cxx /export/home/src/chromium/src/tools/gn/value.cc
++build tools/gn/settings.o: cxx /export/home/src/chromium/src/tools/gn/settings.cc
++build gn.a: alink_thin tools/gn/test_with_scope.o tools/gn/input_file_manager.o tools/gn/ninja_action_target_writer.o tools/gn/commands.o tools/gn/group_target_generator.o tools/gn/command_gen.o tools/gn/gn_main.o tools/gn/function_foreach.o tools/gn/command_format.o tools/gn/toolchain.o tools/gn/input_conversion.o tools/gn/tokenizer.o tools/gn/command_refs.o tools/gn/scheduler.o tools/gn/label_pattern.o tools/gn/ninja_binary_target_writer.o tools/gn/c_include_iterator.o tools/gn/scope.o tools/gn/function_write_file.o tools/gn/command_desc.o tools/gn/tool.o tools/gn/label.o tools/gn/config_values_extractors.o tools/gn/parse_tree.o tools/gn/ninja_group_target_writer.o tools/gn/action_target_generator.o tools/gn/substitution_list.o tools/gn/token.o tools/gn/ninja_build_writer.o tools/gn/scope_per_file_provider.o tools/gn/function_rebase_path.o tools/gn/ninja_copy_target_writer.o tools/gn/target_generator.o tools/gn/loader.o tools/gn/command_ls.o tools/gn/build_settings.o tools/gn/binary_target_generator.o tools/gn/action_values.o tools/gn/function_get_path_info.o tools/gn/copy_target_generator.o tools/gn/string_utils.o tools/gn/input_file.o tools/gn/function_exec_script.o tools/gn/function_process_file_template.o tools/gn/command_args.o tools/gn/err.o tools/gn/variables.o tools/gn/ninja_utils.o tools/gn/escape.o tools/gn/function_toolchain.o tools/gn/value_extractors.o tools/gn/config_values.o tools/gn/trace.o tools/gn/functions.o tools/gn/builder_record.o tools/gn/ninja_writer.o tools/gn/header_checker.o tools/gn/pattern.o tools/gn/functions_target.o tools/gn/standard_out.o tools/gn/config_values_generator.o tools/gn/ninja_toolchain_writer.o tools/gn/function_get_label_info.o tools/gn/location.o tools/gn/template.o tools/gn/path_output.o tools/gn/source_file.o tools/gn/item.o tools/gn/args.o tools/gn/deps_iterator.o tools/gn/command_help.o tools/gn/function_template.o tools/gn/source_dir.o tools/gn/setup.o tools/gn/substitution_type.o tools/gn/target.o tools/gn/source_file_type.o tools/gn/parser.o tools/gn/exec_process.o tools/gn/function_read_file.o tools/gn/config.o tools/gn/output_file.o tools/gn/function_set_defaults.o tools/gn/import_manager.o tools/gn/function_get_target_outputs.o tools/gn/command_check.o tools/gn/builder.o tools/gn/function_set_default_toolchain.o tools/gn/visibility.o tools/gn/operators.o tools/gn/ninja_target_writer.o tools/gn/substitution_writer.o tools/gn/filesystem_utils.o tools/gn/substitution_pattern.o tools/gn/value.o tools/gn/settings.o
++build base/at_exit.o: cxx /export/home/src/chromium/src/base/at_exit.cc
++build base/atomicops_internals_x86_gcc.o: cxx /export/home/src/chromium/src/base/atomicops_internals_x86_gcc.cc
++build base/base_paths.o: cxx /export/home/src/chromium/src/base/base_paths.cc
++build base/base_switches.o: cxx /export/home/src/chromium/src/base/base_switches.cc
++build base/callback_internal.o: cxx /export/home/src/chromium/src/base/callback_internal.cc
++build base/command_line.o: cxx /export/home/src/chromium/src/base/command_line.cc
++build base/debug/alias.o: cxx /export/home/src/chromium/src/base/debug/alias.cc
++build base/debug/debugger_posix.o: cxx /export/home/src/chromium/src/base/debug/debugger_posix.cc
++build base/debug/stack_trace.o: cxx /export/home/src/chromium/src/base/debug/stack_trace.cc
++build base/debug/stack_trace_posix.o: cxx /export/home/src/chromium/src/base/debug/stack_trace_posix.cc
++build base/debug/task_annotator.o: cxx /export/home/src/chromium/src/base/debug/task_annotator.cc
++build base/debug/trace_event_impl.o: cxx /export/home/src/chromium/src/base/debug/trace_event_impl.cc
++build base/debug/trace_event_impl_constants.o: cxx /export/home/src/chromium/src/base/debug/trace_event_impl_constants.cc
++build base/debug/trace_event_memory.o: cxx /export/home/src/chromium/src/base/debug/trace_event_memory.cc
++build base/debug/trace_event_synthetic_delay.o: cxx /export/home/src/chromium/src/base/debug/trace_event_synthetic_delay.cc
++build base/environment.o: cxx /export/home/src/chromium/src/base/environment.cc
++build base/files/file.o: cxx /export/home/src/chromium/src/base/files/file.cc
++build base/files/file_enumerator.o: cxx /export/home/src/chromium/src/base/files/file_enumerator.cc
++build base/files/file_path.o: cxx /export/home/src/chromium/src/base/files/file_path.cc
++build base/files/file_path_constants.o: cxx /export/home/src/chromium/src/base/files/file_path_constants.cc
++build base/files/file_util.o: cxx /export/home/src/chromium/src/base/files/file_util.cc
++build base/files/scoped_file.o: cxx /export/home/src/chromium/src/base/files/scoped_file.cc
++build base/json/json_parser.o: cxx /export/home/src/chromium/src/base/json/json_parser.cc
++build base/json/json_reader.o: cxx /export/home/src/chromium/src/base/json/json_reader.cc
++build base/json/json_string_value_serializer.o: cxx /export/home/src/chromium/src/base/json/json_string_value_serializer.cc
++build base/json/json_writer.o: cxx /export/home/src/chromium/src/base/json/json_writer.cc
++build base/json/string_escape.o: cxx /export/home/src/chromium/src/base/json/string_escape.cc
++build base/lazy_instance.o: cxx /export/home/src/chromium/src/base/lazy_instance.cc
++build base/location.o: cxx /export/home/src/chromium/src/base/location.cc
++build base/logging.o: cxx /export/home/src/chromium/src/base/logging.cc
++build base/memory/ref_counted.o: cxx /export/home/src/chromium/src/base/memory/ref_counted.cc
++build base/memory/ref_counted_memory.o: cxx /export/home/src/chromium/src/base/memory/ref_counted_memory.cc
++build base/memory/singleton.o: cxx /export/home/src/chromium/src/base/memory/singleton.cc
++build base/memory/weak_ptr.o: cxx /export/home/src/chromium/src/base/memory/weak_ptr.cc
++build base/message_loop/incoming_task_queue.o: cxx /export/home/src/chromium/src/base/message_loop/incoming_task_queue.cc
++build base/message_loop/message_loop.o: cxx /export/home/src/chromium/src/base/message_loop/message_loop.cc
++build base/message_loop/message_loop_proxy.o: cxx /export/home/src/chromium/src/base/message_loop/message_loop_proxy.cc
++build base/message_loop/message_loop_proxy_impl.o: cxx /export/home/src/chromium/src/base/message_loop/message_loop_proxy_impl.cc
++build base/message_loop/message_pump.o: cxx /export/home/src/chromium/src/base/message_loop/message_pump.cc
++build base/message_loop/message_pump_default.o: cxx /export/home/src/chromium/src/base/message_loop/message_pump_default.cc
++build base/metrics/bucket_ranges.o: cxx /export/home/src/chromium/src/base/metrics/bucket_ranges.cc
++build base/metrics/histogram.o: cxx /export/home/src/chromium/src/base/metrics/histogram.cc
++build base/metrics/histogram_base.o: cxx /export/home/src/chromium/src/base/metrics/histogram_base.cc
++build base/metrics/histogram_samples.o: cxx /export/home/src/chromium/src/base/metrics/histogram_samples.cc
++build base/metrics/sample_map.o: cxx /export/home/src/chromium/src/base/metrics/sample_map.cc
++build base/metrics/sample_vector.o: cxx /export/home/src/chromium/src/base/metrics/sample_vector.cc
++build base/metrics/sparse_histogram.o: cxx /export/home/src/chromium/src/base/metrics/sparse_histogram.cc
++build base/metrics/statistics_recorder.o: cxx /export/home/src/chromium/src/base/metrics/statistics_recorder.cc
++build base/path_service.o: cxx /export/home/src/chromium/src/base/path_service.cc
++build base/pending_task.o: cxx /export/home/src/chromium/src/base/pending_task.cc
++build base/pickle.o: cxx /export/home/src/chromium/src/base/pickle.cc
++build base/process/kill.o: cxx /export/home/src/chromium/src/base/process/kill.cc
++build base/process/process_handle_solaris.o: cxx /export/home/src/chromium/src/base/process/process_handle_solaris.cc
++build base/process/process_metrics.o: cxx /export/home/src/chromium/src/base/process/process_metrics.cc
++build base/profiler/alternate_timer.o: cxx /export/home/src/chromium/src/base/profiler/alternate_timer.cc
++build base/profiler/tracked_time.o: cxx /export/home/src/chromium/src/base/profiler/tracked_time.cc
++build base/run_loop.o: cxx /export/home/src/chromium/src/base/run_loop.cc
++build base/sequence_checker_impl.o: cxx /export/home/src/chromium/src/base/sequence_checker_impl.cc
++build base/sequenced_task_runner.o: cxx /export/home/src/chromium/src/base/sequenced_task_runner.cc
++build base/strings/string16.o: cxx /export/home/src/chromium/src/base/strings/string16.cc
++build base/strings/string_number_conversions.o: cxx /export/home/src/chromium/src/base/strings/string_number_conversions.cc
++build base/strings/string_piece.o: cxx /export/home/src/chromium/src/base/strings/string_piece.cc
++build base/strings/string_split.o: cxx /export/home/src/chromium/src/base/strings/string_split.cc
++build base/strings/string_util.o: cxx /export/home/src/chromium/src/base/strings/string_util.cc
++build base/strings/string_util_constants.o: cxx /export/home/src/chromium/src/base/strings/string_util_constants.cc
++build base/strings/stringprintf.o: cxx /export/home/src/chromium/src/base/strings/stringprintf.cc
++build base/strings/utf_string_conversion_utils.o: cxx /export/home/src/chromium/src/base/strings/utf_string_conversion_utils.cc
++build base/strings/utf_string_conversions.o: cxx /export/home/src/chromium/src/base/strings/utf_string_conversions.cc
++build base/synchronization/cancellation_flag.o: cxx /export/home/src/chromium/src/base/synchronization/cancellation_flag.cc
++build base/synchronization/lock.o: cxx /export/home/src/chromium/src/base/synchronization/lock.cc
++build base/sys_info.o: cxx /export/home/src/chromium/src/base/sys_info.cc
++build base/task_runner.o: cxx /export/home/src/chromium/src/base/task_runner.cc
++build base/third_party/dmg_fp/dtoa_wrapper.o: cxx /export/home/src/chromium/src/base/third_party/dmg_fp/dtoa_wrapper.cc
++build base/third_party/dmg_fp/g_fmt.o: cxx /export/home/src/chromium/src/base/third_party/dmg_fp/g_fmt.cc
++build base/third_party/icu/icu_utf.o: cxx /export/home/src/chromium/src/base/third_party/icu/icu_utf.cc
++build base/third_party/nspr/prtime.o: cxx /export/home/src/chromium/src/base/third_party/nspr/prtime.cc
++build base/third_party/xdg_user_dirs/xdg_user_dir_lookup.o: cxx /export/home/src/chromium/src/base/third_party/xdg_user_dirs/xdg_user_dir_lookup.cc
++build base/thread_task_runner_handle.o: cxx /export/home/src/chromium/src/base/thread_task_runner_handle.cc
++build base/threading/non_thread_safe_impl.o: cxx /export/home/src/chromium/src/base/threading/non_thread_safe_impl.cc
++build base/threading/post_task_and_reply_impl.o: cxx /export/home/src/chromium/src/base/threading/post_task_and_reply_impl.cc
++build base/threading/sequenced_worker_pool.o: cxx /export/home/src/chromium/src/base/threading/sequenced_worker_pool.cc
++build base/threading/simple_thread.o: cxx /export/home/src/chromium/src/base/threading/simple_thread.cc
++build base/threading/thread_checker_impl.o: cxx /export/home/src/chromium/src/base/threading/thread_checker_impl.cc
++build base/threading/thread_collision_warner.o: cxx /export/home/src/chromium/src/base/threading/thread_collision_warner.cc
++build base/threading/thread_id_name_manager.o: cxx /export/home/src/chromium/src/base/threading/thread_id_name_manager.cc
++build base/threading/thread_local_storage.o: cxx /export/home/src/chromium/src/base/threading/thread_local_storage.cc
++build base/threading/thread_restrictions.o: cxx /export/home/src/chromium/src/base/threading/thread_restrictions.cc
++build base/time/time.o: cxx /export/home/src/chromium/src/base/time/time.cc
++build base/timer/elapsed_timer.o: cxx /export/home/src/chromium/src/base/timer/elapsed_timer.cc
++build base/timer/timer.o: cxx /export/home/src/chromium/src/base/timer/timer.cc
++build base/tracked_objects.o: cxx /export/home/src/chromium/src/base/tracked_objects.cc
++build base/tracking_info.o: cxx /export/home/src/chromium/src/base/tracking_info.cc
++build base/values.o: cxx /export/home/src/chromium/src/base/values.cc
++build base/vlog.o: cxx /export/home/src/chromium/src/base/vlog.cc
++build base/base_paths_posix.o: cxx /export/home/src/chromium/src/base/base_paths_posix.cc
++build base/files/file_enumerator_posix.o: cxx /export/home/src/chromium/src/base/files/file_enumerator_posix.cc
++build base/files/file_posix.o: cxx /export/home/src/chromium/src/base/files/file_posix.cc
++build base/files/file_util_posix.o: cxx /export/home/src/chromium/src/base/files/file_util_posix.cc
++build base/message_loop/message_pump_libevent.o: cxx /export/home/src/chromium/src/base/message_loop/message_pump_libevent.cc
++build base/posix/file_descriptor_shuffle.o: cxx /export/home/src/chromium/src/base/posix/file_descriptor_shuffle.cc
 +build base/nix/xdg_util.o: cxx /export/home/src/chromium/src/base/nix/xdg_util.cc
-+   includes = -I/export/home/src/chromium/src
-+   cflags = 
-+   cflags_cc = 
- build base/process/kill_posix.o: cxx /export/home/src/chromium/src/base/process/kill_posix.cc
-    includes = -I/export/home/src/chromium/src
-    cflags = 
-@@ -840,6 +844,8 @@ build base/sys_info_posix.o: cxx /export/home/src/chromium/src/base/sys_info_pos
-    includes = -I/export/home/src/chromium/src
-    cflags = 
-    cflags_cc = 
++build base/process/kill_posix.o: cxx /export/home/src/chromium/src/base/process/kill_posix.cc
++build base/process/process_handle_posix.o: cxx /export/home/src/chromium/src/base/process/process_handle_posix.cc
++build base/process/process_metrics_posix.o: cxx /export/home/src/chromium/src/base/process/process_metrics_posix.cc
++build base/process/process_posix.o: cxx /export/home/src/chromium/src/base/process/process_posix.cc
++build base/safe_strerror_posix.o: cxx /export/home/src/chromium/src/base/safe_strerror_posix.cc
++build base/synchronization/condition_variable_posix.o: cxx /export/home/src/chromium/src/base/synchronization/condition_variable_posix.cc
++build base/synchronization/lock_impl_posix.o: cxx /export/home/src/chromium/src/base/synchronization/lock_impl_posix.cc
++build base/synchronization/waitable_event_posix.o: cxx /export/home/src/chromium/src/base/synchronization/waitable_event_posix.cc
++build base/sys_info_posix.o: cxx /export/home/src/chromium/src/base/sys_info_posix.cc
 +build base/sys_info_solaris.o: cxx /export/home/src/chromium/src/base/sys_info_solaris.cc
-+   includes = -I/export/home/src/chromium/src
- build base/threading/platform_thread_posix.o: cxx /export/home/src/chromium/src/base/threading/platform_thread_posix.cc
-    includes = -I/export/home/src/chromium/src
-    cflags = 
-@@ -871,7 +877,7 @@ build base/os_compat_solaris.o: cxx /export/home/src/chromium/src/base/os_compat
-    cflags_cc = 
- 
- 
--build base.a: alink_thin base/at_exit.o base/atomicops_internals_x86_gcc.o base/base_paths.o base/base_switches.o base/callback_internal.o base/command_line.o base/debug/alias.o base/debug/stack_trace.o base/debug/task_annotator.o base/debug/trace_event_impl.o base/debug/trace_event_impl_constants.o base/debug/trace_event_memory.o base/debug/trace_event_synthetic_delay.o base/environment.o base/files/file.o base/files/file_enumerator.o base/files/file_path.o base/files/file_path_constants.o base/files/file_util.o base/files/scoped_file.o base/json/json_parser.o base/json/json_reader.o base/json/json_string_value_serializer.o base/json/json_writer.o base/json/string_escape.o base/lazy_instance.o base/location.o base/logging.o base/memory/ref_counted.o base/memory/ref_counted_memory.o base/memory/singleton.o base/memory/weak_ptr.o base/message_loop/incoming_task_queue.o base/message_loop/message_loop.o base/message_loop/message_loop_proxy.o base/message_loop/message_loop_proxy_impl.o base/message_loop/message_pump.o base/message_loop/message_pump_default.o base/metrics/bucket_ranges.o base/metrics/histogram.o base/metrics/histogram_base.o base/metrics/histogram_samples.o base/metrics/sample_map.o base/metrics/sample_vector.o base/metrics/sparse_histogram.o base/metrics/statistics_recorder.o base/os_compat_solaris.o base/path_service.o base/pending_task.o base/pickle.o base/process/kill.o base/process/process_iterator.o base/process/process_handle_solaris.o base/process/process_metrics.o base/profiler/alternate_timer.o base/profiler/tracked_time.o base/run_loop.o base/sequence_checker_impl.o base/sequenced_task_runner.o base/strings/string16.o base/strings/string_number_conversions.o base/strings/string_piece.o base/strings/string_split.o base/strings/string_util.o base/strings/string_util_constants.o base/strings/stringprintf.o base/strings/utf_string_conversion_utils.o base/strings/utf_string_conversions.o base/synchronization/cancellation_flag.o base/synchronization/lock.o base/sys_info.o base/task_runner.o base/third_party/dmg_fp/dtoa_wrapper.o base/third_party/dmg_fp/g_fmt.o base/third_party/icu/icu_utf.o base/third_party/nspr/prtime.o base/thread_task_runner_handle.o base/threading/non_thread_safe_impl.o base/threading/post_task_and_reply_impl.o base/threading/sequenced_worker_pool.o base/threading/simple_thread.o base/threading/thread_checker_impl.o base/threading/thread_collision_warner.o base/threading/thread_id_name_manager.o base/threading/thread_local_storage.o base/threading/thread_restrictions.o base/time/time.o base/timer/elapsed_timer.o base/timer/timer.o base/tracked_objects.o base/tracking_info.o base/values.o base/vlog.o base/base_paths_posix.o base/files/file_enumerator_posix.o base/files/file_posix.o base/files/file_util_posix.o base/message_loop/message_pump_libevent.o base/posix/file_descriptor_shuffle.o base/process/kill_posix.o base/process/process_handle_posix.o base/process/process_metrics_posix.o base/process/process_posix.o base/safe_strerror_posix.o base/synchronization/condition_variable_posix.o base/synchronization/lock_impl_posix.o base/synchronization/waitable_event_posix.o base/sys_info_posix.o base/threading/platform_thread_posix.o base/threading/platform_thread_solaris.o base/threading/thread_local_posix.o base/threading/thread_local_storage_posix.o base/time/time_posix.o base/strings/sys_string_conversions_posix.o
-+build base.a: alink_thin base/at_exit.o base/atomicops_internals_x86_gcc.o base/base_paths.o base/base_switches.o base/callback_internal.o base/command_line.o base/debug/alias.o base/debug/stack_trace.o base/debug/task_annotator.o base/debug/trace_event_impl.o base/debug/trace_event_impl_constants.o base/debug/trace_event_memory.o base/debug/trace_event_synthetic_delay.o base/environment.o base/files/file.o base/files/file_enumerator.o base/files/file_path.o base/files/file_path_constants.o base/files/file_util.o base/files/scoped_file.o base/json/json_parser.o base/json/json_reader.o base/json/json_string_value_serializer.o base/json/json_writer.o base/json/string_escape.o base/lazy_instance.o base/location.o base/logging.o base/memory/ref_counted.o base/memory/ref_counted_memory.o base/memory/singleton.o base/memory/weak_ptr.o base/message_loop/incoming_task_queue.o base/message_loop/message_loop.o base/message_loop/message_loop_proxy.o base/message_loop/message_loop_proxy_impl.o base/message_loop/message_pump.o base/message_loop/message_pump_default.o base/metrics/bucket_ranges.o base/metrics/histogram.o base/metrics/histogram_base.o base/metrics/histogram_samples.o base/metrics/sample_map.o base/metrics/sample_vector.o base/metrics/sparse_histogram.o base/metrics/statistics_recorder.o base/os_compat_solaris.o base/path_service.o base/pending_task.o base/pickle.o base/process/kill.o base/process/process_iterator.o base/process/process_handle_solaris.o base/process/process_metrics.o base/profiler/alternate_timer.o base/profiler/tracked_time.o base/run_loop.o base/sequence_checker_impl.o base/sequenced_task_runner.o base/strings/string16.o base/strings/string_number_conversions.o base/strings/string_piece.o base/strings/string_split.o base/strings/string_util.o base/strings/string_util_constants.o base/strings/stringprintf.o base/strings/utf_string_conversion_utils.o base/strings/utf_string_conversions.o base/synchronization/cancellation_flag.o base/synchronization/lock.o base/sys_info.o base/sys_info_solaris.o base/task_runner.o base/third_party/dmg_fp/dtoa_wrapper.o base/third_party/dmg_fp/g_fmt.o base/third_party/icu/icu_utf.o base/third_party/nspr/prtime.o base/thread_task_runner_handle.o base/threading/non_thread_safe_impl.o base/threading/post_task_and_reply_impl.o base/threading/sequenced_worker_pool.o base/threading/simple_thread.o base/threading/thread_checker_impl.o base/threading/thread_collision_warner.o base/threading/thread_id_name_manager.o base/threading/thread_local_storage.o base/threading/thread_restrictions.o base/time/time.o base/timer/elapsed_timer.o base/timer/timer.o base/tracked_objects.o base/tracking_info.o base/values.o base/vlog.o base/base_paths_posix.o base/files/file_enumerator_posix.o base/files/file_posix.o base/files/file_util_posix.o base/message_loop/message_pump_libevent.o base/posix/file_descriptor_shuffle.o base/nix/xdg_util.o base/process/kill_posix.o base/process/process_handle_posix.o base/process/process_metrics_posix.o base/process/process_posix.o base/safe_strerror_posix.o base/synchronization/condition_variable_posix.o base/synchronization/lock_impl_posix.o base/synchronization/waitable_event_posix.o base/sys_info_posix.o base/threading/platform_thread_posix.o base/threading/platform_thread_solaris.o base/threading/thread_local_posix.o base/threading/thread_local_storage_posix.o base/time/time_posix.o base/strings/sys_string_conversions_posix.o
- build base/third_party/dynamic_annotations/dynamic_annotations.o: cc /export/home/src/chromium/src/base/third_party/dynamic_annotations/dynamic_annotations.c
-    includes = -I/export/home/src/chromium/src
-    cflags = 
++build base/threading/platform_thread_solaris.o: cxx /export/home/src/chromium/src/base/threading/platform_thread_solaris.cc
++build base/threading/platform_thread_posix.o: cxx /export/home/src/chromium/src/base/threading/platform_thread_posix.cc
++build base/threading/thread_local_posix.o: cxx /export/home/src/chromium/src/base/threading/thread_local_posix.cc
++build base/threading/thread_local_storage_posix.o: cxx /export/home/src/chromium/src/base/threading/thread_local_storage_posix.cc
++build base/time/time_posix.o: cxx /export/home/src/chromium/src/base/time/time_posix.cc
++build base/strings/sys_string_conversions_posix.o: cxx /export/home/src/chromium/src/base/strings/sys_string_conversions_posix.cc
++
++build base/os_compat_solaris.o: cxx /export/home/src/chromium/src/base/os_compat_solaris.cc
++
++build base.a: alink_thin base/at_exit.o base/atomicops_internals_x86_gcc.o base/base_paths.o base/base_switches.o base/callback_internal.o base/command_line.o base/debug/alias.o base/debug/debugger_posix.o base/debug/stack_trace.o base/debug/stack_trace_posix.o base/debug/task_annotator.o base/debug/trace_event_impl.o base/debug/trace_event_impl_constants.o base/debug/trace_event_memory.o base/debug/trace_event_synthetic_delay.o base/environment.o base/files/file.o base/files/file_enumerator.o base/files/file_path.o base/files/file_path_constants.o base/files/file_util.o base/files/scoped_file.o base/json/json_parser.o base/json/json_reader.o base/json/json_string_value_serializer.o base/json/json_writer.o base/json/string_escape.o base/lazy_instance.o base/location.o base/logging.o base/memory/ref_counted.o base/memory/ref_counted_memory.o base/memory/singleton.o base/memory/weak_ptr.o base/message_loop/incoming_task_queue.o base/message_loop/message_loop.o base/message_loop/message_loop_proxy.o base/message_loop/message_loop_proxy_impl.o base/message_loop/message_pump.o base/message_loop/message_pump_default.o base/metrics/bucket_ranges.o base/metrics/histogram.o base/metrics/histogram_base.o base/metrics/histogram_samples.o base/metrics/sample_map.o base/metrics/sample_vector.o base/metrics/sparse_histogram.o base/metrics/statistics_recorder.o base/os_compat_solaris.o base/path_service.o base/pending_task.o base/pickle.o base/process/kill.o base/process/process_handle_solaris.o base/process/process_metrics.o base/profiler/alternate_timer.o base/profiler/tracked_time.o base/run_loop.o base/sequence_checker_impl.o base/sequenced_task_runner.o base/strings/string16.o base/strings/string_number_conversions.o base/strings/string_piece.o base/strings/string_split.o base/strings/string_util.o base/strings/string_util_constants.o base/strings/stringprintf.o base/strings/utf_string_conversion_utils.o base/strings/utf_string_conversions.o base/synchronization/cancellation_flag.o base/synchronization/lock.o base/sys_info.o base/sys_info_solaris.o base/task_runner.o base/third_party/dmg_fp/dtoa_wrapper.o base/third_party/dmg_fp/g_fmt.o base/third_party/icu/icu_utf.o base/third_party/nspr/prtime.o base/third_party/xdg_user_dirs/xdg_user_dir_lookup.o base/thread_task_runner_handle.o base/threading/non_thread_safe_impl.o base/threading/post_task_and_reply_impl.o base/threading/sequenced_worker_pool.o base/threading/simple_thread.o base/threading/thread_checker_impl.o base/threading/thread_collision_warner.o base/threading/thread_id_name_manager.o base/threading/thread_local_storage.o base/threading/thread_restrictions.o base/time/time.o base/timer/elapsed_timer.o base/timer/timer.o base/tracked_objects.o base/tracking_info.o base/values.o base/vlog.o base/base_paths_posix.o base/files/file_enumerator_posix.o base/files/file_posix.o base/files/file_util_posix.o base/message_loop/message_pump_libevent.o base/posix/file_descriptor_shuffle.o base/nix/xdg_util.o base/process/kill_posix.o base/process/process_handle_posix.o base/process/process_metrics_posix.o base/process/process_posix.o base/safe_strerror_posix.o base/synchronization/condition_variable_posix.o base/synchronization/lock_impl_posix.o base/synchronization/waitable_event_posix.o base/sys_info_posix.o base/threading/platform_thread_posix.o base/threading/platform_thread_solaris.o base/threading/thread_local_posix.o base/threading/thread_local_storage_posix.o base/time/time_posix.o base/strings/sys_string_conversions_posix.o
++build base/third_party/dynamic_annotations/dynamic_annotations.o: cc /export/home/src/chromium/src/base/third_party/dynamic_annotations/dynamic_annotations.c
++build dynamic_annotations.a: alink_thin base/third_party/dynamic_annotations/dynamic_annotations.o
++build gn: link gn.a base.a dynamic_annotations.a /usr/lib/libevent.so
++  ldflags = 
++  libs = 
++  ld = $ldxx

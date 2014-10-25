@@ -1,17 +1,26 @@
 diff --git a/base/process/process_handle_solaris.cc b/base/process/process_handle_solaris.cc
 new file mode 100644
-index 0000000..7dc5860
+index 0000000..77c0eef
 --- /dev/null
 +++ b/base/process/process_handle_solaris.cc
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,58 @@
 +// Copyright (c) 2013 The Chromium Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
++
++
++// Note: everywhere else, we are expected to use 64bit offset.
++// But HERE.. we need to use procfs.
++// Which, apparently, is 32bit only!
++// An ifdef bombs out, in sys/procfs.h, unless we undefine this
++// It should be okay so long as the only fd stuff we do in here, is for procfs
++#undef _FILE_OFFSET_BITS
 +
 +#include "base/process/process_handle.h"
 +
 +#include "base/files/file_util.h"
 +#include "base/strings/string_number_conversions.h"
++
 +
 +#define _STRUCTURED_PROC 1
 +#include <sys/procfs.h>
